@@ -12,3 +12,7 @@ obj/
 # Rider / VSCode optional
 .idea/
 .vscode/
+
+# NuGet
+packages/
+*.nupkg

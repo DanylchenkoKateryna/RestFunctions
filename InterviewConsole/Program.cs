@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
+using System.Configuration;
+using EmployeeService.Data;
 
 namespace InterviewConsole
 {
@@ -12,29 +8,19 @@ namespace InterviewConsole
     {
         static void Main(string[] args)
         {
-            DataTable dtEmployees = GetQueryResult("SELECT * FROM Employee");
-        }
-        
-        private static DataTable GetQueryResult(string query)
-        {
-            var dt = new DataTable();
+            var connectionString = ConfigurationManager
+                .ConnectionStrings["EmployeeDB"]
+                .ConnectionString;
 
-			using (var connection = new SqlConnection("Data Source=(local);Initial Catalog=Test;User ID=sa;Password=pass@word1; "))
-            {
-                connection.Open();
+            var repository = new EmployeeRepository(connectionString);
+            var demo = new DemoHelper(repository, connectionString);
 
-                using (var command = connection.CreateCommand())
-                {
-					command.CommandText = query;
+            demo.GetEmployeeById(id: 1);
+            demo.EnableEmployee(id: 5, enable: false);
+            demo.EnableEmployee(id: 5, enable: true);
 
-                    using (var adapter = new SqlDataAdapter(command))
-                    {
-                        adapter.Fill(dt);
-                    }
-                }
-            }
-
-			return dt;
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }

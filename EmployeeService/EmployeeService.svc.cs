@@ -1,31 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using Newtonsoft.Json;
+using System.Configuration;
+using System.Net;
+using System.ServiceModel.Web;
+using EmployeeService.Data;
+using EmployeeService.Models;
 
 namespace EmployeeService
 {
-    // NOTE: You can use the "Rename" command on the "Refactor" menu to change the class name "Service1" in code, svc and config file together.
-    // NOTE: In order to launch WCF Test Client for testing this service, please select Service1.svc or Service1.svc.cs at the Solution Explorer and start debugging.
-    public class Service1 : IEmployeeService
+    public class EmployeeServiceImpl : IEmployeeService
     {
-        public bool GetEmployeeById(int id)
-        {
+        private readonly IEmployeeRepository _repository;
 
-            return false;
+        public EmployeeServiceImpl()
+        {
+            var connectionString = ConfigurationManager
+                .ConnectionStrings["EmployeeDB"]
+                .ConnectionString;
+
+            _repository = new EmployeeRepository(connectionString);
         }
 
-      
+        internal EmployeeServiceImpl(IEmployeeRepository repository)
+        {
+            _repository = repository;
+        }
+
+        public EmployeeDto GetEmployeeById(int id)
+        {
+            var employee = _repository.GetEmployeeTree(id);
+
+            if (employee == null)
+            {
+                WebOperationContext.Current.OutgoingResponse.StatusCode = HttpStatusCode.NotFound;
+                
+                return null;
+            }
+
+            return employee;
+        }
 
         public void EnableEmployee(int id, int enable)
         {
-            
+            _repository.SetEnabled(id, enable == 1);
+
+            WebOperationContext.Current.OutgoingResponse.StatusCode = HttpStatusCode.NoContent;
         }
-
-     
     }
-
-      
 }

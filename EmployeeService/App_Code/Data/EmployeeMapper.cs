@@ -4,11 +4,29 @@ using EmployeeService.Models;
 
 namespace EmployeeService.Data
 {
-    internal static class EmployeeMapper
+    public static class EmployeeMapper
     {
-        internal static EmployeeDto MapRow(IDataRecord record)
+        public static EmployeeDto ToDto(Employee employee)
         {
-            return new EmployeeDto
+            var dto = new EmployeeDto
+            {
+                ID = employee.ID,
+                Name = employee.Name,
+                ManagerID = employee.ManagerID
+            };
+
+            foreach (var child in employee.Employees)
+            {
+                dto.Employees.Add(ToDto(child));
+            }
+
+            return dto;
+        }
+
+
+        internal static Employee MapRow(IDataRecord record)
+        {
+            return new Employee
             {
                 ID = record.GetInt32(record.GetOrdinal("ID")),
                 Name = record.GetString(record.GetOrdinal("Name")),
@@ -18,14 +36,14 @@ namespace EmployeeService.Data
             };
         }
 
-        internal static void BuildTree(Dictionary<int, EmployeeDto> flat, int rootId)
+        internal static void BuildTree(Dictionary<int, Employee> flat, int rootId)
         {
             foreach (var emp in flat.Values)
             {
                 if (emp.ID == rootId)
                     continue;
 
-                EmployeeDto parent;
+                Employee parent;
                 if (emp.ManagerID.HasValue &&
                     flat.TryGetValue(emp.ManagerID.Value, out parent))
                 {

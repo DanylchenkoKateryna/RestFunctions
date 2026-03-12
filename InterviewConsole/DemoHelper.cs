@@ -29,7 +29,7 @@ namespace InterviewConsole
             }
             else
             {
-                PrintTree(employee, depth: 0);
+                PrintTree(EmployeeMapper.ToDto(employee), depth: 0);
             }
 
             Console.WriteLine();
@@ -39,11 +39,19 @@ namespace InterviewConsole
         {
             Console.WriteLine("=== EnableEmployee(id={0}, enable={1}) ===", id, enable);
 
+            var dt = GetQueryResult(
+                "SELECT ID, Name, ManagerID, Enable FROM dbo.Employee WHERE ID = @id",
+                new SqlParameter("@id", id));
+
+            if (dt.Rows.Count == 0)
+            {
+                Console.WriteLine("Employee {0} not found. No changes made.", id);
+                return;
+            }
+
             PrintRawRow(id);
             _repository.SetEnabled(id, enable);
-
             Console.WriteLine("  -> Employee {0} is now {1}.", id, enable ? "ENABLED" : "DISABLED");
-
             PrintRawRow(id);
 
             Console.WriteLine();
@@ -66,8 +74,9 @@ namespace InterviewConsole
 
         private void PrintRawRow(int id)
         {
-            var dt = GetQueryResult(
-                "SELECT ID, Name, ManagerID, Enable FROM dbo.Employee WHERE ID = " + id);
+            var query = "SELECT ID, Name, ManagerID, Enable FROM dbo.Employee WHERE ID = @id";
+
+            var dt = GetQueryResult(query, new SqlParameter("@id", id));
 
             if (dt.Rows.Count == 0)
             {
@@ -83,7 +92,7 @@ namespace InterviewConsole
                 row["Enable"]);
         }
 
-        private DataTable GetQueryResult(string query)
+        private DataTable GetQueryResult(string query, params SqlParameter[] parameters)
         {
             var dt = new DataTable();
 
@@ -93,6 +102,8 @@ namespace InterviewConsole
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = query;
+                    cmd.Parameters.AddRange(parameters);
+
                     using (var adapter = new SqlDataAdapter(cmd))
                         adapter.Fill(dt);
                 }

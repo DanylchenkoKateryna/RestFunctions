@@ -4,7 +4,7 @@ namespace EmployeeService.Data
 {
     public interface IEmployeeRepository
     {
-        EmployeeDto GetEmployeeTree(int id);
+        Employee GetEmployeeTree(int id);
 
         void SetEnabled(int id, bool enable);
     }

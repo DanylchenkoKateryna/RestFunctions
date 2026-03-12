@@ -19,11 +19,6 @@ namespace EmployeeService
             _repository = new EmployeeRepository(connectionString);
         }
 
-        internal EmployeeServiceImpl(IEmployeeRepository repository)
-        {
-            _repository = repository;
-        }
-
         public EmployeeDto GetEmployeeById(int id)
         {
             var employee = _repository.GetEmployeeTree(id);
@@ -35,7 +30,7 @@ namespace EmployeeService
                 return null;
             }
 
-            return employee;
+            return EmployeeMapper.ToDto(employee);
         }
 
         public void EnableEmployee(int id, int enable)

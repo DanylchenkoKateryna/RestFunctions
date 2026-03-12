@@ -14,7 +14,7 @@ namespace EmployeeService.Data
             _connectionString = connectionString;
         }
 
-        public EmployeeDto GetEmployeeTree(int id)
+        public Employee GetEmployeeTree(int id)
         {
             const string sql = @"
                 WITH EmployeeHierarchy AS (
@@ -30,8 +30,8 @@ namespace EmployeeService.Data
                 FROM EmployeeHierarchy
                 OPTION (MAXRECURSION 100);";
 
-            var flat = new Dictionary<int, EmployeeDto>();
-
+            var flat = new Dictionary<int, Employee>();
+            
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd  = new SqlCommand(sql, conn))
             {
@@ -41,12 +41,12 @@ namespace EmployeeService.Data
                 using (var reader = cmd.ExecuteReader())
                     while (reader.Read())
                     {
-                        var dto = EmployeeMapper.MapRow(reader);
-                        flat[dto.ID] = dto;
+                        var model = EmployeeMapper.MapRow(reader);
+                        flat[model.ID] = model;
                     }
             }
 
-            EmployeeDto root;
+            Employee root;
             if (!flat.TryGetValue(id, out root))
                 return null;
 
